@@ -1,0 +1,1 @@
+"""Paquet core de BabiProgrammeur."""

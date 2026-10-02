@@ -179,3 +179,8 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+# --- BabiProgrammeur (exceptions et fichiers locaux) ---
+# le gabarit ci-dessus ignore *.spec, mais buildozer.spec est requis
+!buildozer.spec
+.buildozer/
+data.json
