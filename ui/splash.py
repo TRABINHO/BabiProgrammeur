@@ -125,8 +125,12 @@ class SplashScreen(Widget):
             if col.y + hauteur < h:
                 col.y = h - hauteur
         self.logo.center = (w / 2, h / 2 + dp(14))
-        self._titre.center = (w / 2, h / 2 - TAILLE_LOGO / 2 - dp(22))
+        # la LARGEUR d'abord : `center` est calculé depuis la largeur courante,
+        # la définir après laisserait la boîte décalée (centre = w - w0/2).
+        # Sur téléphone aucune correction ne vient plus tard : sans cet ordre
+        # le titre reste aligné à droite pendant tout le splash.
         self._titre.width = w
+        self._titre.center = (w / 2, h / 2 - TAILLE_LOGO / 2 - dp(22))
         self._on_logo()
 
     def _on_resize(self, *_args) -> None:
@@ -138,9 +142,14 @@ class SplashScreen(Widget):
         for i, col in enumerate(self._cols):
             col.x = i * pas + pas / 2
         self.logo.center = (w / 2, h / 2 + dp(14))
+        self._titre.width = w
         self._titre.center = (w / 2, h / 2 - TAILLE_LOGO / 2 - dp(22))
 
     def _on_logo(self, *_args) -> None:
+        # La pulsation anime `size` avec un coin fixe : le centre dériverait
+        # de ±5 px et l'icône se désalignerait du titre « pendant l'animation ».
+        # On recalcule donc le centre de l'icône sur la fenêtre à chaque pas.
+        self.logo.center = (self.width / 2, self.height / 2 + dp(14))
         self._plaque.center = self.logo.center
         self._plaque.size = (self.logo.width + dp(36), self.logo.height + dp(36))
         self._plaque_rect.pos = self._plaque.pos
