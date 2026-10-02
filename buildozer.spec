@@ -49,6 +49,13 @@ android.ndk = 25b
 # (bool) Utiliser du code optimisé
 android.arm64_pie = True
 
+# (str) Artefact de release : APK signé pour distribution hors Play Store
+android.release_artifact = apk
+
+# Signature de release : buildozer 1.6.0 lit les variables d'env P4A_RELEASE_*
+# (P4A_RELEASE_KEYSTORE, P4A_RELEASE_KEYALIAS, *_PASSWD), exportees par
+# build_release.sh — les cles keystore= du spec sont ignorees par cette version.
+
 # (str) Indicateur d'application (logo Babi Programmez, 256x256)
 icon.filename = %(source.dir)s/assets/icon.png
 

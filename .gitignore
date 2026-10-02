@@ -184,3 +184,9 @@ cython_debug/
 !buildozer.spec
 .buildozer/
 data.json
+
+# Cle de signature de release (jamais versionnee, copie locale uniquement)
+keystore/
+
+# Clone local du depot GitHub (copie redondante du projet)
+BabiProgrammeur/
