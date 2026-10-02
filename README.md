@@ -35,6 +35,18 @@ solution commentée de chacun des 105 exercices.
   au lieu du logo Kivy. Désactivable avec la variable `BABI_SPLASH=0`.
 - **Aucune permission** requise sur Android (hors notifications pour les rappels).
 
+## Téléchargement (Android)
+
+- **APK de release signé** : [Releases du dépôt](https://github.com/TRABINHO/BabiProgrammeur/releases/latest)
+  (`babiprogrammeur-1.0.0-arm64-v8a-release.apk`, arm64-v8a, Android 5.0+).
+  Télécharger puis ouvrir le fichier ; autoriser l'installation des sources
+  inconnues si le système le demande. Signature de release `CN=BabiProgrammeur`
+  (empreinte SHA-256 `e08dcf06…`) — elle remplace l'APK de debug, qui devra donc
+  être désinstallé avant la première installation.
+- **Politique de confidentialité** : <https://trabinho.github.io/BabiProgrammeur/privacy.html>
+  (application 100 % locale, aucune donnée collectée, seule permission :
+  notifications locales).
+
 ## Installation (desktop)
 
 ```bash
