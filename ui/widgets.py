@@ -6,6 +6,7 @@ from kivy.graphics import Color, Ellipse, Line, RoundedRectangle, Rectangle, Tri
 from kivy.metrics import dp, sp
 from kivy.properties import BooleanProperty, ListProperty, NumericProperty, StringProperty
 from kivy.uix.behaviors import ButtonBehavior
+from kivy.uix.label import CoreLabel
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
@@ -82,20 +83,80 @@ class Chip(Button):
 # Bouton de navigation du bas
 # --------------------------------------------------------------------------
 class NavButton(Button):
+    """Bouton de navigation du bas.
+
+    Responsivité : la police est réduite (mesurée au CoreLabel) jusqu'à ce que
+    le libellé ENTIER tienne dans la largeur du bouton ; le raccourcissement
+    « … » ne survient qu'en dernier recours. Un libellé ne déborde donc jamais
+    sur ses voisins, quelle que soit la largeur d'écran.
+    """
+
+    _FONT_BASE = 12   # sp de départ
+    _FONT_MIN = 8     # sp plancher (au-delà : raccourci)
+    _MARGE = 4        # dp de confort de chaque côté
+
     def __init__(self, **kw):
         kw.setdefault("background_normal", "")
         kw.setdefault("background_down", "")
         kw.setdefault("background_color", (0, 0, 0, 0))
-        kw.setdefault("font_size", sp(12))
+        kw.setdefault("font_size", sp(self._FONT_BASE))
         kw.setdefault("bold", True)
         kw.setdefault("color", colors.FAINT)
+        # garde-fou anti-débordement : texte cadré sur toute la largeur,
+        # raccourci avec « … » si la police minimale ne suffit pas
+        kw.setdefault("halign", "center")
+        kw.setdefault("shorten", True)
+        kw.setdefault("shorten_from", "right")
+        kw.setdefault("max_lines", 1)
         super().__init__(**kw)
+        # valeur par défaut de text_size du Label (réinitialisable : None
+        # est refusé par la ListProperty, on restaure donc le défaut exact)
+        self._ts_initial = list(self.text_size)
         with self.canvas.before:
             self._line_c = Color(0, 0, 0, 0)
             # y + height et non self.top : AliasProperty cachée, périmée
             # pendant le dispatch de size (voir RingWidget.redraw).
             self._line = RoundedRectangle(pos=(self.x, self.y + self.height - dp(3)), size=(0, dp(3)))
         self.bind(pos=self._sync, size=self._sync)
+        self.bind(width=self._fit_label)
+        self._fit_label()
+
+    def _measure(self, fs: float) -> float:
+        """Largeur naturelle du libellé à la police fs (px), au pixel près.
+
+        CoreLabel (= classe provider active) mesure hors canevas de façon
+        synchrone ; utilisable dans l'application (fenêtre initialisée).
+        """
+        lbl = CoreLabel(
+            text=self.text,
+            font_name=self.font_name,
+            font_size=fs,
+            bold=bool(self.bold),
+        )
+        lbl.refresh()
+        tex = getattr(lbl, "texture", None)
+        return float(tex.size[0]) if tex else 0.0
+
+    def _fit_label(self, *_):
+        """Réduit la police pour garder le libellé entier dans le bouton.
+
+        Tant que le texte naturel tient, on laisse `text_size` à None :
+        Kivy centre alors la texture naturelle d'elle-même, et les contrôles
+        de mise en page (check_layout, probe_nav) mesurent le vrai texte.
+        Le cadrage strict + raccourci « … » n'intervient qu'en dernier recours.
+        """
+        dispo = self.width - dp(self._MARGE * 2)
+        if dispo <= dp(8):
+            return
+        fs = sp(self._FONT_BASE)
+        while fs > sp(self._FONT_MIN) and self._measure(fs) > dispo:
+            fs -= sp(0.5)
+        if abs(float(self.font_size) - fs) > 0.25:
+            self.font_size = fs
+        if self._measure(fs) > self.width:
+            self.text_size = (self.width, None)
+        else:
+            self.text_size = self._ts_initial
 
     def _sync(self, *_):
         self._line.pos = (self.x, self.y + self.height - dp(3))
