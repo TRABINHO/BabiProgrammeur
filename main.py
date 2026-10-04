@@ -90,6 +90,9 @@ class BabiProgrammeur(MDApp):
             seed(self.store)
 
         root = BoxLayout(orientation="vertical")
+        # Conteneur racine + compteur de retentes pour apply_system_insets.
+        self.root_box = root
+        self._insets_tries = 0
 
         # ---------------------------------------------------------- #
         # Barre d'état
@@ -234,7 +237,51 @@ class BabiProgrammeur(MDApp):
         self.store.set_settings(last_reminder_day=today_key)
 
     # ------------------------------------------------------------------ #
+    def apply_system_insets(self, *_args) -> None:
+        """Réserve la place des barres système (Android 15+, API 35+).
+
+        Avec une cible 35 ou plus, Android dessine l'application bord à
+        bord : la barre d'état OS recouvre notre en-tête et la barre de
+        navigation nos onglets du bas. On padde le conteneur racine de la
+        hauteur réelle des insets — la mise en page reste alors identique
+        à la version fenêtrée actuelle. Hors Android 15+, rien ne bouge.
+        """
+        if platform != "android" or not getattr(self, "root_box", None):
+            return
+        try:
+            from jnius import autoclass
+
+            if int(autoclass("android.os.Build$VERSION").SDK_INT) < 35:
+                return
+            from android import mActivity
+
+            insets = mActivity.getWindow().getDecorView().getRootWindowInsets()
+            top = bottom = 0
+            if insets is not None:
+                try:
+                    wint = autoclass("android.view.WindowInsets$Type")
+                    box = insets.getInsets(wint.systemBars())
+                    top, bottom = int(box.top), int(box.bottom)
+                except Exception:
+                    # Repli sur l'API d'origine (deprecated mais vivante).
+                    top = int(insets.getSystemWindowInsetTop())
+                    bottom = int(insets.getSystemWindowInsetBottom())
+            if top or bottom:
+                # VariableListProperty : [gauche, haut, droite, bas].
+                self.root_box.padding = [0, top, 0, bottom]
+                return
+        except Exception:
+            return
+        # Insets pas encore fournies (fenêtre pas encore posée) : on retente.
+        self._insets_tries = getattr(self, "_insets_tries", 0) + 1
+        if self._insets_tries <= 10:
+            Clock.schedule_once(self.apply_system_insets, 0.5)
+
     def on_start(self) -> None:
+        # Android 15+ : décalage de l'UI sous les barres système
+        # (edge-to-edge) — deux amorces, plus les retentes internes.
+        Clock.schedule_once(self.apply_system_insets, 0)
+        Clock.schedule_once(self.apply_system_insets, 1.0)
         for screen in self.screens.values():
             screen.refresh()
         # Écran d'accueil : logo au centre sur fond de binaire vert qui

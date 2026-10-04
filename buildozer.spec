@@ -39,12 +39,16 @@ fullscreen = 0
 # (list) Permissions : notifications pour les rappels (obligatoire sur Android 13+)
 android.permissions = POST_NOTIFICATIONS
 
-# (str) Android minimum API level
+# (str) Android minimum API level (minimum conseille par p4a : 21)
 android.minapi = 21
 
-# (str) Android SDK cible / compilateur
-android.api = 33
-android.ndk = 25b
+# (str) Android SDK cible / compilateur — derniere version d'Android :
+# Android 17 (API 37, juin 2026). targetSdkVersion suit android.api.
+# NDK r28c = version recommandee par p4a 2026.05 : alignment 16 Ko des .so
+# par defaut (indispensable sur les appareils Android 15+ a pages 16 Ko) et
+# compilation native sur les stubs API 21 (ndk_api = minapi).
+android.api = 37
+android.ndk = 28c
 
 # (bool) Utiliser du code optimisé
 android.arm64_pie = True
