@@ -448,6 +448,10 @@ class BarRow(Widget):
             font_size=sp(12), color=colors.MUTED, halign="right",
             size_hint=(None, None), size=(dp(10), dp(16)),
         )
+        for lab in (self._name, self._val):
+            # sans text_size, halign est ignoré (texture centrée dans la
+            # boîte) : le libellé « flotte » au-dessus de la barre.
+            lab.bind(size=lambda l, s: setattr(l, "text_size", s))
         self.add_widget(self._name)
         self.add_widget(self._val)
         self.bind(pos=self.redraw, size=self.redraw, fraction=self.redraw,
@@ -528,13 +532,17 @@ class CheckRow(ButtonBehavior, Widget):
         self._title_lbl = Label(
             font_size=sp(13), bold=True, color=colors.TEXT,
             size_hint=(None, None), halign="left", valign="middle",
+            shorten=True, shorten_from="right", max_lines=1,
         )
         self._sub_lbl = Label(
             font_size=sp(11), color=colors.MUTED,
             size_hint=(None, None), halign="left", valign="middle",
+            shorten=True, shorten_from="right", max_lines=1,
         )
         self._check_lbl = Label(
-            text="✓", font_size=sp(14), bold=True, color=(0, 0, 0, 0),
+            # puce « • » (U+2022) : present dans les 4 styles Fira Sans,
+            # contrairemennt a « ✓ » (U+2713) qui s'affichait en « ? »
+            text="•", font_size=sp(18), bold=True, color=(0, 0, 0, 0),
             size_hint=(None, None), halign="center", valign="middle",
         )
         self._read_lbl = Label(
@@ -582,7 +590,7 @@ class CheckRow(ButtonBehavior, Widget):
     # -------------------------------------------------------------- #
     def redraw(self, *_args) -> None:
         # canvas.before : on ne touche pas à self.canvas, qui contient les
-        # canvases des libellés enfants (title, subtitle, ✓).
+        # canvases des libellés enfants (title, subtitle, •).
         self.canvas.before.clear()
         pressed = self.state == "down"
         unread = not self.read and not self.done   # fiche à lire avant coche
@@ -670,10 +678,12 @@ class LinkRow(ButtonBehavior, Widget):
         self._title_lbl = Label(
             font_size=sp(13), bold=True, color=colors.TEXT,
             size_hint=(None, None), halign="left", valign="middle",
+            shorten=True, shorten_from="right", max_lines=1,
         )
         self._sub_lbl = Label(
             font_size=sp(11), color=colors.MUTED,
             size_hint=(None, None), halign="left", valign="middle",
+            shorten=True, shorten_from="right", max_lines=1,
         )
         self._go_lbl = Label(
             text="Voir »", font_size=sp(11), bold=True, color=colors.ACCENT,

@@ -97,18 +97,38 @@ def scroll_column(spacing=dp(12), padding=dp(16)) -> Tuple[ScrollView, BoxLayout
     return sv, col
 
 
-def small_label(text="", color=None, size=12, bold=False, height=None) -> Label:
+def small_label(text="", color=None, size=12, bold=False, height=None,
+                single_line=False):
+    min_h = height or dp(18)
     lbl = Label(
         text=text,
         font_size=sp(size),
         bold=bold,
         color=color or colors.TEXT,
         size_hint_y=None,
-        height=height or dp(18),
+        height=min_h,
         halign="left",
         valign="middle",
     )
-    lbl.bind(size=lambda l, s: setattr(l, "text_size", s))
+    if single_line:
+        # boîte à hauteur fixe (rangées de liste) : une seule ligne avec
+        # « … » plutôt qu'une deuxième ligne rogner par la carte
+        lbl.shorten = True
+        lbl.shorten_from = "right"
+        lbl.max_lines = 1
+
+    def _fit(l, *_):
+        # Largeur seule (hauteur None) : la texture n'est jamais rognée et
+        # donne la hauteur réelle du texte ; la boîte GRANDIT au lieu de
+        # couper la dernière ligne (« les écrits tiennent dans la rubrique »).
+        l.text_size = (l.width, None)
+        th = l.texture_size[1]
+        want = max(min_h, th + dp(2)) if th else min_h
+        if abs(l.height - want) > 0.5:
+            l.height = want
+
+    lbl.bind(size=_fit, texture_size=_fit)
+    _fit(lbl)
     return lbl
 
 
@@ -422,9 +442,19 @@ class StatsScreen(BaseScreen):
             text="", font_size=sp(13), color=colors.TEXT, halign="left", valign="top",
             size_hint_y=None,
         )
-        self.summary_lbl.bind(
-            size=lambda l, s: (setattr(l, "text_size", s), setattr(l, "height", max(dp(60), l.texture_size[1] + dp(6))))
-        )
+
+        def _fit_summary(l, *_):
+            # largeur seule : la texture n'est pas rognée à la hauteur
+            # courante (sinon l'équilibre se fige sur une version tronquée
+            # et la dernière ligne disparaît) ; la boîte grandit au texte.
+            l.text_size = (l.width, None)
+            th = l.texture_size[1]
+            want = max(dp(60), th + dp(6)) if th else dp(60)
+            if abs(l.height - want) > 0.5:
+                l.height = want
+
+        self.summary_lbl.bind(size=_fit_summary, texture_size=_fit_summary)
+        _fit_summary(self.summary_lbl)
         summary_card.add_widget(self.summary_lbl)
         summary_card.bind(minimum_height=lambda *_: setattr(summary_card, "height", summary_card.minimum_height))
         col.add_widget(summary_card)
@@ -695,16 +725,18 @@ class HistoryScreen(BaseScreen):
                    padding=(dp(12), dp(8), dp(12), dp(8)), spacing=dp(10))
 
         left = BoxLayout(orientation="vertical", spacing=dp(2))
-        title = small_label(s.project or "Sans projet", colors.TEXT, size=14, bold=True, height=dp(22))
+        title = small_label(s.project or "Sans projet", colors.TEXT, size=14,
+                            bold=True, height=dp(22), single_line=True)
         started = datetime.fromtimestamp(s.started_at)
         meta = small_label(
             f"{started.strftime('%d/%m/%Y · %H:%M')}"
             + (f"  ·  {s.language}" if s.language else ""),
-            colors.MUTED, size=11, height=dp(18),
+            colors.MUTED, size=11, height=dp(18), single_line=True,
         )
         if s.notes:
             note = small_label(s.notes[:60] + ("…" if len(s.notes) > 60 else ""),
-                               colors.FAINT, size=11, height=dp(16))
+                               colors.FAINT, size=11, height=dp(16),
+                               single_line=True)
             left.add_widget(title)
             left.add_widget(meta)
             left.add_widget(note)
@@ -723,9 +755,10 @@ class HistoryScreen(BaseScreen):
         dur.bind(size=lambda l, _s: setattr(l, "text_size", l.size))
         right.add_widget(dur)
 
+        # « × » (U+00D7, presents dans Fira) ; « ✕ » (U+2715) affichait « ? »
         del_btn = Button(
-            text="✕",
-            font_size=sp(15),
+            text="×",
+            font_size=sp(17),
             color=colors.FAINT,
             background_normal="",
             background_down="",
@@ -967,7 +1000,7 @@ class LearningScreen(BaseScreen):
         self.row_exercises.fraction = (done_e / tot_e) if tot_e else 0.0
         self.row_exercises.value_text = f"{done_e} / {tot_e}"
         if total and finished >= total:
-            self.prog_detail.text = f"Parcours terminé !  🎉  ({total} éléments)"
+            self.prog_detail.text = f"Parcours terminé !  ({total} éléments)"
             self.prog_detail.color = colors.GREEN
         else:
             plural = "s" if finished > 1 else ""
@@ -990,7 +1023,7 @@ class LearningScreen(BaseScreen):
                 except ValueError:
                     day = ev.get("date", "")
                 self.jalons_box.add_widget(small_label(
-                    f"✓  {ev.get('title', '')}  ·  {ev.get('lang', '')}  ·  {day}",
+                    f"•  {ev.get('title', '')}  ·  {ev.get('lang', '')}  ·  {day}",
                     colors.MUTED, size=12, height=dp(20),
                 ))
         else:
