@@ -169,6 +169,16 @@ def ghost_button(text, on_release=None) -> MDRaisedButton:
     return btn
 
 
+def input_field(hint_text, **kw) -> MDTextField:
+    # Bordures sur la palette : par défaut KivyMD trace un trait blanc à 50 %
+    # (teinte de thème clair) qui ne cadre pas avec le fond sombre de l'app.
+    # Le libellé flottant (mode rectangle) repose sur ce trait.
+    field = MDTextField(hint_text=hint_text, mode="rectangle", **kw)
+    field.line_color_normal = list(colors.LINE)
+    field.line_color_focus = list(colors.ACCENT)
+    return field
+
+
 def lang_color(name: str) -> tuple:
     """Couleur exclusive d'un langage (délègue à ui.colors.LANG_COLORS)."""
     return colors.lang_color(name)
@@ -219,9 +229,13 @@ class TimerScreen(BaseScreen):
         # --- formulaire ------------------------------------------------ #
         form = BoxLayout(orientation="vertical", spacing=dp(10), size_hint_y=None)
         form.bind(minimum_height=form.setter("height"))
+        # md_bg_color = fond réel derrière les champs : KivyMD repeint le trait
+        # sous le libellé flottant avec cette couleur (sinon bg_normal #121212
+        # laisse une cicatrice noire sur la bordure).
+        form.md_bg_color = list(colors.BG)
         root.add_widget(form)
 
-        self.project_field = MDTextField(hint_text="Nom du projet", mode="rectangle")
+        self.project_field = input_field("Nom du projet")
         self.project_field.bind(text=self._on_field_change)
         form.add_widget(self.project_field)
 
@@ -242,11 +256,11 @@ class TimerScreen(BaseScreen):
         chips_scroll.add_widget(chips)
         form.add_widget(chips_scroll)
 
-        self.lang_field = MDTextField(hint_text="Langage", mode="rectangle")
+        self.lang_field = input_field("Langage")
         self.lang_field.bind(text=self._on_field_change)
         form.add_widget(self.lang_field)
 
-        self.notes_field = MDTextField(hint_text="Notes (optionnel)", mode="rectangle", multiline=True)
+        self.notes_field = input_field("Notes (optionnel)", multiline=True)
         self.notes_field.bind(text=self._on_field_change)
         form.add_widget(self.notes_field)
 
@@ -559,8 +573,8 @@ class GoalsScreen(BaseScreen):
         # objectifs chiffrés
         goal_card = Card(size_hint_y=None, spacing=dp(10))
         goal_card.add_widget(small_label("MES OBJECTIFS", colors.ACCENT, size=11))
-        self.daily_field = MDTextField(hint_text="Objectif quotidien (minutes)", mode="rectangle", input_filter="int")
-        self.weekly_field = MDTextField(hint_text="Objectif hebdomadaire (minutes)", mode="rectangle", input_filter="int")
+        self.daily_field = input_field("Objectif quotidien (minutes)", input_filter="int")
+        self.weekly_field = input_field("Objectif hebdomadaire (minutes)", input_filter="int")
         goal_card.add_widget(self.daily_field)
         goal_card.add_widget(self.weekly_field)
         goal_card.add_widget(primary_button("Enregistrer les objectifs", self._save_goals))
@@ -576,7 +590,7 @@ class GoalsScreen(BaseScreen):
                 colors.MUTED, size=12, height=dp(34),
             )
         )
-        self.time_field = MDTextField(hint_text="Heure (HH:MM)", mode="rectangle")
+        self.time_field = input_field("Heure (HH:MM)")
         rem_card.add_widget(self.time_field)
 
         row = BoxLayout(size_hint_y=None, height=dp(46), spacing=dp(10))
@@ -658,7 +672,8 @@ class GoalsScreen(BaseScreen):
         daily_goal = int(goals.get("daily_minutes", 0)) * 60
         today = st.seconds_today(self.store().sessions)
         self.ring.progress = (today / daily_goal) if daily_goal else 0.0
-        self.ring.center_text = f"{min(today / daily_goal, 9.99):.1f} h" if daily_goal else st.format_duration(today)
+        # virgule décimale : UI française (« 0,0 h » et non « 0.0 h »)
+        self.ring.center_text = f"{min(today / daily_goal, 9.99):.1f} h".replace(".", ",") if daily_goal else st.format_duration(today)
         if daily_goal:
             self.ring.caption = f"objectif {st.format_duration(daily_goal)}"
         else:

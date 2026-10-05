@@ -20,6 +20,10 @@ class Card(BoxLayout):
 
     def __init__(self, orientation="vertical", padding=None, spacing=None, **kw):
         super().__init__(orientation=orientation, **kw)
+        # md_bg_color = fond réel de la carte : KivyMD s'en sert pour repeindre
+        # le trait sous le libellé flottant d'un MDTextField ; sans lui il
+        # utilise bg_normal (#121212) et laisse une cicatrice noire.
+        self.md_bg_color = list(colors.CARD)
         self.padding = padding if padding is not None else dp(14)
         self.spacing = spacing if spacing is not None else dp(8)
         with self.canvas.before:
@@ -644,8 +648,11 @@ class CheckRow(ButtonBehavior, Widget):
         self._sub_lbl.color = (colors.FAINT if self.done
                                else colors.ACCENT if unread else colors.MUTED)
 
-        self._check_lbl.size = (dp(20), dp(20))
-        self._check_lbl.pos = (bx, by)
+        # boîte dp24 (et non dp20) : la texture « • » à sp18 fait ~1,2 × 18
+        # = 21,6 dp de haut — centrée sur la case de 20 dp, elle débordait de
+        # la boîte (gate probe_text_fit). Centre inchangé : bx-2 + 24/2 = bx+10.
+        self._check_lbl.size = (dp(24), dp(24))
+        self._check_lbl.pos = (bx - dp(2), by - dp(2))
         self._check_lbl.color = (0.04, 0.12, 0.09, 1.0) if self.done else (0, 0, 0, 0)
 
         self._read_lbl.size = (pill_w, pill_h)
