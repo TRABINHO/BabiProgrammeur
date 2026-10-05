@@ -29,7 +29,9 @@ def _dialog_button(text: str, primary: bool, on_release: Callable[[], None]) -> 
         background_normal="",
         background_down="",
         background_color=(0, 0, 0, 0),
-        color=colors.ACCENT if primary else colors.MUTED,
+        # primaire : texte blanc sur la pastille bleue (façon SoloLearn —
+        # du texte bleu sur fond bleu était illisible)
+        color=(1, 1, 1, 1) if primary else colors.MUTED,
     )
 
     def _sync(*_):

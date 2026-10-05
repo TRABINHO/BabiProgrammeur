@@ -52,6 +52,33 @@ from ui.screens import (CorrectionScreen, GoalsScreen, HistoryScreen,
                          LearningScreen, StatsScreen, TimerScreen)
 from ui.widgets import NavButton
 
+
+def install_fonts() -> None:
+    """Fira Sans (SIL OFL, dépôt mozilla/Fira) en place de Roboto.
+
+    Le slot « Roboto » est réenregistré sur nos fichiers TTF : tous les
+    libellés par défaut — application et KivyMD — basculent sur Fira Sans,
+    la police de SoloLearn, sans toucher aux milliers de Label existants.
+    En cas de pépin (fichier absent…), l'application reste en Roboto.
+    """
+    try:
+        from kivy.core.text import LabelBase
+
+        base = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "assets", "fonts"
+        )
+        for name in ("Roboto", "Fira Sans"):
+            LabelBase.register(
+                name=name,
+                fn_regular=os.path.join(base, "FiraSans-Regular.ttf"),
+                fn_bold=os.path.join(base, "FiraSans-Bold.ttf"),
+                fn_italic=os.path.join(base, "FiraSans-Italic.ttf"),
+                fn_bolditalic=os.path.join(base, "FiraSans-BoldItalic.ttf"),
+            )
+    except Exception:
+        pass
+
+
 TABS = [
     ("timer", "Suivi"),
     ("stats", "Stats"),
@@ -64,6 +91,7 @@ TABS = [
 
 class BabiProgrammeur(MDApp):
     def build(self):
+        install_fonts()
         ensure_readable_metrics()
         from kivy.core.window import Window
 
@@ -77,6 +105,18 @@ class BabiProgrammeur(MDApp):
         self.theme_cls.theme_style = "Dark"
         self.theme_cls.primary_palette = "LightBlue"
         self.theme_cls.disabled_alpha = "0.5"
+        # Fond de fenêtre de la palette (navy SoloLearn) : KivyMD impose le
+        # sien au changement de thème (#121212), puis LE REPASSE au premier
+        # tick (Clock.schedule_once de son ThemeManager.__init__). On
+        # verrouille la valeur par une liaison auto-limitée sur clearcolor :
+        # toute tentative étrangère est annulée dans la foulée.
+        Window.clearcolor = colors.BG
+
+        def _keep_bg(*_):
+            if tuple(Window.clearcolor) != tuple(colors.BG):
+                Window.clearcolor = colors.BG
+
+        Window.bind(clearcolor=_keep_bg)
 
         if platform not in ("android", "ios"):
             # Fenêtre « format téléphone » ; on la cale en haut à gauche pour
@@ -100,13 +140,12 @@ class BabiProgrammeur(MDApp):
         header = BoxLayout(size_hint_y=None, height=dp(54),
                            padding=(dp(16), dp(3)), spacing=dp(2),
                            orientation="vertical")
+        # Bandeau bleu SoloLearn (#2EA7FF) : titre blanc, date à 88 %.
         with header.canvas.before:
             from kivy.graphics import Color, Rectangle
 
-            Color(*colors.CARD)
+            Color(*colors.ACCENT)
             Rectangle(pos=header.pos, size=header.size)
-            Color(*colors.LINE)
-            Rectangle(pos=header.pos, size=(header.width, dp(1)))
         header.bind(
             pos=lambda *_: None,
             size=lambda *_: None,
@@ -115,10 +154,8 @@ class BabiProgrammeur(MDApp):
         def _draw_header(*_):
             header.canvas.before.clear()
             with header.canvas.before:
-                Color(*colors.CARD)
+                Color(*colors.ACCENT)
                 Rectangle(pos=header.pos, size=header.size)
-                Color(*colors.LINE)
-                Rectangle(pos=(header.x, header.y), size=(header.width, dp(1)))
 
         header.bind(pos=_draw_header, size=_draw_header)
 
@@ -127,7 +164,7 @@ class BabiProgrammeur(MDApp):
             text="BabiProgrammeur",
             font_size=sp(19),
             bold=True,
-            color=colors.ACCENT,
+            color=(1, 1, 1, 1),
             halign="left",
             valign="middle",
             size_hint_y=0.58,
@@ -141,7 +178,7 @@ class BabiProgrammeur(MDApp):
         self.today_lbl = Label(
             text="",
             font_size=sp(12),
-            color=colors.MUTED,
+            color=(1, 1, 1, 0.88),
             halign="right",
             valign="middle",
             size_hint_y=0.42,

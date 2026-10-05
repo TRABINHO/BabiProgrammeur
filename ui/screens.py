@@ -120,12 +120,15 @@ def make_card(*widgets, spacing=dp(10)) -> Card:
 
 
 def primary_button(text, on_release=None, disabled=False) -> MDRaisedButton:
+    # Bleu plein + texte blanc : le bouton d'action façon SoloLearn.
     btn = MDRaisedButton(
         text=text,
         size_hint_y=None,
         height=dp(46),
         font_size=sp(14),
         disabled=disabled,
+        md_bg_color=colors.ACCENT,
+        text_color=(1, 1, 1, 1),
     )
     if on_release:
         btn.bind(on_release=on_release)

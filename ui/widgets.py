@@ -24,7 +24,7 @@ class Card(BoxLayout):
         self.spacing = spacing if spacing is not None else dp(8)
         with self.canvas.before:
             Color(*colors.CARD)
-            self._bg = RoundedRectangle(radius=[dp(14)], pos=self.pos, size=self.size)
+            self._bg = RoundedRectangle(radius=[dp(16)], pos=self.pos, size=self.size)
         self.bind(pos=self._sync, size=self._sync)
 
     def _sync(self, *_):
@@ -69,6 +69,8 @@ class Chip(Button):
     def _sync(self, *_):
         self._rect.pos = self.pos
         self._rect.size = self.size
+        # pastille pleine façon SoloLearn : rayon = demi-hauteur
+        self._rect.radius = [max(self.height / 2.0, dp(6))]
 
     def _do_release(self, *args):
         # Puce verrouillée (sélection courante) : on ignore la remise à plat
@@ -116,7 +118,8 @@ class NavButton(Button):
             self._line_c = Color(0, 0, 0, 0)
             # y + height et non self.top : AliasProperty cachée, périmée
             # pendant le dispatch de size (voir RingWidget.redraw).
-            self._line = RoundedRectangle(pos=(self.x, self.y + self.height - dp(3)), size=(0, dp(3)))
+            self._line = RoundedRectangle(pos=(self.x, self.y + self.height - dp(3)),
+                                          size=(0, dp(3)), radius=[dp(1.5)] * 4)
         self.bind(pos=self._sync, size=self._sync)
         self.bind(width=self._fit_label)
         self._fit_label()

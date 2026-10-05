@@ -1,21 +1,26 @@
-"""Palette de couleurs commune à toute l'interface."""
+"""Palette de couleurs commune à toute l'interface.
 
-BG = (0.055, 0.065, 0.085, 1.0)      # fond général
-BG_ALT = (0.075, 0.085, 0.110, 1.0)  # fond des cartes alternées
-CARD = (0.105, 0.120, 0.150, 1.0)    # cartes
-CARD_HI = (0.135, 0.155, 0.195, 1.0)  # cartes surélevées / sélectionnées
+Thème sombre inspiré de SoloLearn : fond navy profond, cartes bleu-nuit,
+bleu primaire #2EA7FF pour les actions et accents, couleurs vives réservées
+aux données (progression, langages).
+"""
 
-LINE = (0.200, 0.230, 0.280, 1.0)    # séparateurs
+BG = (0.047, 0.067, 0.110, 1.0)      # #0C111C fond général (navy profond)
+BG_ALT = (0.067, 0.094, 0.153, 1.0)  # #111827 fond des barres / alterné
+CARD = (0.106, 0.145, 0.220, 1.0)    # #1B2538 cartes
+CARD_HI = (0.145, 0.192, 0.282, 1.0)  # #25314A cartes surélevées / sélectionnées
 
-TEXT = (0.930, 0.945, 0.965, 1.0)    # texte principal
-MUTED = (0.560, 0.615, 0.685, 1.0)   # texte secondaire
-FAINT = (0.360, 0.400, 0.460, 1.0)   # texte très discret
+LINE = (0.204, 0.255, 0.349, 1.0)    # #344159 séparateurs
 
-ACCENT = (0.240, 0.610, 0.980, 1.0)  # bleu
-ACCENT_DIM = (0.240, 0.610, 0.980, 0.35)
-GREEN = (0.180, 0.800, 0.560, 1.0)   # objectif atteint
-ORANGE = (0.980, 0.620, 0.230, 1.0)  # en cours / alerte
-RED = (0.940, 0.330, 0.360, 1.0)     # erreur / suppression
+TEXT = (0.949, 0.961, 0.980, 1.0)    # #F2F5FA texte principal
+MUTED = (0.600, 0.659, 0.753, 1.0)   # #99A8C0 texte secondaire
+FAINT = (0.380, 0.435, 0.533, 1.0)   # #61708A texte très discret
+
+ACCENT = (0.180, 0.655, 1.000, 1.0)  # #2EA7FF bleu SoloLearn (actions)
+ACCENT_DIM = (0.180, 0.655, 1.000, 0.35)
+GREEN = (0.298, 0.851, 0.392, 1.0)   # #4CD964 objectif atteint
+ORANGE = (1.000, 0.651, 0.188, 1.0)  # #FFA630 en cours / alerte
+RED = (1.000, 0.353, 0.373, 1.0)     # #FF5A5F erreur / suppression
 
 # Nuances utilisées pour les barres et les langages
 SERIES = [
